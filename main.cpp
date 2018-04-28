@@ -389,8 +389,8 @@ extern "C" void* ThreadStats(void*) {
   } while(1);
 }
 
-static const string mainnet_seeds[] = {"mainnet.z.cash", "dnsseed.str4d.xyz", "dnsseed.znodes.org", ""};
-static const string testnet_seeds[] = {"testnet.z.cash", "explorer.testnet.z.cash", ""};
+static const string mainnet_seeds[] = {"dnsseed.koto.cash", "dnsseed.kotocoin.info", ""};
+static const string testnet_seeds[] = {"testnet.kotocoin.info", ""};
 static const string *seeds = mainnet_seeds;
 
 extern "C" void* ThreadSeeder(void*) {
@@ -446,10 +446,10 @@ int main(int argc, char **argv) {
   bool fDNS = true;
   if (opts.fUseTestNet) {
       printf("Using testnet.\n");
-      pchMessageStart[0] = 0xFA;
-      pchMessageStart[1] = 0x1A;
-      pchMessageStart[2] = 0x24;
-      pchMessageStart[3] = 0xB6;
+      pchMessageStart[0] = 0x54;
+      pchMessageStart[1] = 0x6f;
+      pchMessageStart[2] = 0x6b;
+      pchMessageStart[3] = 0x6f;
       seeds = testnet_seeds;
       fTestNet = true;
   }
