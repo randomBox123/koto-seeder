@@ -390,7 +390,7 @@ extern "C" void* ThreadStats(void*) {
 }
 
 static const string mainnet_seeds[] = {"dnsseed.koto.cash", "dnsseed.kotocoin.info", ""};
-static const string testnet_seeds[] = {"testnet.kotocoin.info", ""};
+static const string testnet_seeds[] = {"testnet.kotocoin.info", "koto-testnet.poolof.work", ""}; //, "155.94.133.106", "220.100.37.238"};
 static const string *seeds = mainnet_seeds;
 
 extern "C" void* ThreadSeeder(void*) {
