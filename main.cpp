@@ -14,6 +14,7 @@
 using namespace std;
 
 bool fTestNet = false;
+bool fDaemon = false;
 
 class CDnsSeedOpts {
 public:
@@ -21,6 +22,7 @@ public:
   int nPort;
   int nDnsThreads;
   int fUseTestNet;
+  int fDaemon ;
   int fWipeBan;
   int fWipeIgnore;
   const char *mbox;
@@ -31,7 +33,7 @@ public:
   const char *ipv6_proxy;
   std::set<uint64_t> filter_whitelist;
 
-  CDnsSeedOpts() : nThreads(96), nDnsThreads(4), nPort(53), mbox(NULL), ns(NULL), host(NULL), tor(NULL), fUseTestNet(false), fWipeBan(false), fWipeIgnore(false), ipv4_proxy(NULL), ipv6_proxy(NULL) {}
+  CDnsSeedOpts() : nThreads(96), nDnsThreads(4), nPort(53), mbox(NULL), ns(NULL), host(NULL), tor(NULL), fUseTestNet(false), fDaemon(false), fWipeBan(false), fWipeIgnore(false), ipv4_proxy(NULL), ipv6_proxy(NULL) {}
 
   void ParseCommandLine(int argc, char **argv) {
     static const char *help = "Bitcoin-seeder\n"
@@ -51,6 +53,7 @@ public:
                               "--testnet       Use testnet\n"
                               "--wipeban       Wipe list of banned nodes\n"
                               "--wipeignore    Wipe list of ignored nodes\n"
+                              "--daemon        Daemon mode\n"
                               "-?, --help      Show this text\n"
                               "\n";
     bool showHelp = false;
@@ -70,6 +73,7 @@ public:
         {"testnet", no_argument, &fUseTestNet, 1},
         {"wipeban", no_argument, &fWipeBan, 1},
         {"wipeignore", no_argument, &fWipeBan, 1},
+        {"daemon", no_argument, &fDaemon, 1},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
       };
@@ -370,14 +374,16 @@ extern "C" void* ThreadStats(void*) {
     strftime(c, 256, "[%y-%m-%d %H:%M:%S]", tmp);
     CAddrDbStats stats;
     db.GetStats(stats);
-    if (first)
-    {
-      first = false;
-      printf("\n\n\n\x1b[3A");
+    if (!fDaemon) {
+      if (first)
+      {
+        first = false;
+        printf("\n\n\n\x1b[3A");
+      }
+      else
+        printf("\x1b[2K\x1b[u");
+      printf("\x1b[s");
     }
-    else
-      printf("\x1b[2K\x1b[u");
-    printf("\x1b[s");
     uint64_t requests = 0;
     uint64_t queries = 0;
     for (unsigned int i=0; i<dnsThread.size(); i++) {
@@ -385,7 +391,12 @@ extern "C" void* ThreadStats(void*) {
       queries += dnsThread[i]->dbQueries;
     }
     printf("%s %i/%i available (%i tried in %is, %i new, %i active), %i banned; %llu DNS requests, %llu db queries", c, stats.nGood, stats.nAvail, stats.nTracked, stats.nAge, stats.nNew, stats.nAvail - stats.nTracked - stats.nNew, stats.nBanned, (unsigned long long)requests, (unsigned long long)queries);
-    Sleep(1000);
+    if (fDaemon) {
+      printf("\n");
+      Sleep(60000);
+    } else {
+      Sleep(1000);
+    }
   } while(1);
 }
 
@@ -414,6 +425,9 @@ int main(int argc, char **argv) {
   setbuf(stdout, NULL);
   CDnsSeedOpts opts;
   opts.ParseCommandLine(argc, argv);
+  if (opts.fDaemon) {
+    fDaemon = true;
+  }
   printf("Supporting whitelisted filters: ");
   for (std::set<uint64_t>::const_iterator it = opts.filter_whitelist.begin(); it != opts.filter_whitelist.end(); it++) {
       if (it != opts.filter_whitelist.begin()) {
